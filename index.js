@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("./models/users");
-const Task = require("./models/tasks");
+const Todo = require("./models/tasks");
 const Goal = require("./models/goals")
 const Feedback = require("./models/feedback")
 
@@ -320,7 +320,7 @@ app.get("/tasks", authenticateToken, async (req, res) => {
     }
 
     try {
-        const tasks = await Task.find(filter);
+        const tasks = await Todo.find(filter);
         res.status(200).json(tasks);           // Send filtered todos
     } catch (error) {
         res.status(500).json({
@@ -330,14 +330,14 @@ app.get("/tasks", authenticateToken, async (req, res) => {
 });
 
 app.post("/tasks", authenticateToken, async (req, res) => {
-    const { task, tag, priority, selectedDate } = req.body;
+    const { todo, tag, priority, selectedDate } = req.body;
     const { userId } = req.user
 
     const date = new Date(selectedDate);
     date.setHours(0, 0, 0, 0)
 
     try {
-        await Task.create({ task, tag, priority, userId, selectedDate: date });
+        await Todo.create({ todo, tag, priority, userId, selectedDate: date });
         res.status(201).json({ message: "Task added successfully" });
     } catch (error) {
         console.error(error);
@@ -370,7 +370,7 @@ app.delete("/tasks", authenticateToken, async (req, res) => {
     try {
 
         const { userId } = req.user;
-        await Task.deleteMany({ userId });
+        await Todo.deleteMany({ userId });
         res.status(200).json({ message: "All tasks deleted successfully" });
     } catch (error) {
         res.status(500).json({ err_msg: error.message });
@@ -382,7 +382,7 @@ app.delete("/tasks/:taskId", authenticateToken, async (req, res) => {
     const { userId } = req.user;
     try {
         // Delete the todo by its ID
-        const deletedTask = await Task.findOneAndDelete({ _id: taskId, userId });
+        const deletedTask = await Todo.findOneAndDelete({ _id: taskId, userId });
         if (!deletedTask) {
             return res.status(404).send({ err_msg: "Task not found or unauthorized" });
         }
