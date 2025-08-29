@@ -507,7 +507,7 @@ app.post("/verifyOtp", async (req, res) => {
     user.isVerified=true
     await user.save()
 
-    return res.status(200).json({ message: "Otp Verified Successfully!" })
+    return res.status(200).json({ message: "Otp Verified Successfully! You Can Login Now!" })
 })
 
 app.post("/resetPassword", async (req, res) => {
@@ -520,7 +520,7 @@ app.post("/resetPassword", async (req, res) => {
         }
 
         if (password.length<6){
-            return res.status(400).json({err_msg:"Password must be at least 6 characters long"})
+            return res.status(400).json({err_msg:"Password must be Atleast 6 Characters Long"})
         }
         const isOldPasswordMatched = await bcrypt.compare(password, user.password)
         if (isOldPasswordMatched) {
@@ -567,7 +567,7 @@ app.get("/dashboard", authenticateToken, async (req, res) => {
         const startDate = new Date(endDate);
         startDate.setUTCDate(startDate.getUTCDate() - days);
 
-        const tasks = await Task.find({ userId, selectedDate: { $gte: startDate, $lte: endDate } })
+        const tasks = await Todo.find({ userId, selectedDate: { $gte: startDate, $lte: endDate } })
 
         const getGraph1 = () => {
             let pendingTasks = completedTasks = 0
@@ -580,7 +580,7 @@ app.get("/dashboard", authenticateToken, async (req, res) => {
 
         const getGraph2 = () => {
             let high = low = medium = 0
-            todos.forEach(each => {
+            tasks.forEach(each => {
                 if (each.priority === "low") low++
                 else if (each.priority === "medium") medium++
                 else high++
@@ -589,7 +589,7 @@ app.get("/dashboard", authenticateToken, async (req, res) => {
         }
 
         const getGraph3 = async () => {
-            const aggregatedTasks = await Task.aggregate([
+            const aggregatedTasks = await Todo.aggregate([
                 { $match: { userId: new mongoose.Types.ObjectId(userId), selectedDate: { $gte: startDate, $lte: endDate } } },
                 { $group: { _id: "$selectedDate", completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } } } },
                 { $project: { _id: 0, date: "$_id", completed: 1 } }
@@ -615,7 +615,7 @@ app.get("/dashboard", authenticateToken, async (req, res) => {
         }
 
         const getGraph4 = async () => {
-            const aggregatedTasks = await Task.aggregate([
+            const aggregatedTasks = await Todo.aggregate([
                 { $match: { userId: new mongoose.Types.ObjectId(userId), selectedDate: { $gte: startDate, $lte: endDate } } },
                 { $group: { _id: "$selectedDate", total: { $sum: 1 }, completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } } } },
                 { $project: { _id: 0, date: "$_id", total: 1, completed: 1 } }
@@ -636,7 +636,7 @@ app.get("/dashboard", authenticateToken, async (req, res) => {
         }
 
         const getGraph5 = async () => {
-            const aggregatedTasks = await Task.aggregate([
+            const aggregatedTasks = await Todo.aggregate([
                 { $match: { userId: new mongoose.Types.ObjectId(userId), selectedDate: { $gte: startDate, $lte: endDate } } },
                 { $group: { _id: "$tag", count: { $sum: 1 } } },
                 { $project: { _id: 0, tag: "$_id", count: 1 } },
@@ -678,11 +678,11 @@ app.get("/streak", authenticateToken, async (req, res) => {
         startDate.setDate(endDate.getDate() - parseInt(days, 10))
 
         //this is for getting total and completed tasks
-        let summary = await Task.aggregate([{ $match: { userId: new mongoose.Types.ObjectId(userId), selectedDate: { $gte: startDate, $lte: endDate } } },
+        let summary = await Todo.aggregate([{ $match: { userId: new mongoose.Types.ObjectId(userId), selectedDate: { $gte: startDate, $lte: endDate } } },
         { $group: { _id: null, completedCount: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } }, totalTasks: { $sum: 1 } } }])
         const result = summary[0] || { completedCount: 0, totalTasks: 0 };
 
-        const activeDatesAgg = await Task.aggregate([
+        const activeDatesAgg = await Todo.aggregate([
             {
                 $match: {
                     userId: new mongoose.Types.ObjectId(userId),
@@ -723,7 +723,7 @@ app.get("/streak", authenticateToken, async (req, res) => {
             }
         }
 
-        const tasks = await Task.find({
+        const tasks = await Todo.find({
             userId,
             selectedDate: { $gte: startDate, $lte: endDate },
             status: "completed"
