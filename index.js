@@ -387,13 +387,13 @@ app.post("/register", async (req, res) => {
         const { username, password, email } = req.body;
 
         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-        const { username: existingUsername, email: existingEmail } = existingUser ?? {}
-        if (existingUsername) {
+        if (existingUser?.username === username) {
             return res.status(400).json({ err_msg: "Username Already Taken" })
         }
-        if (existingEmail) {
+        if (existingUser?.email === email) {
             return res.status(400).json({ err_msg: "Email Already Taken" })
         }
+
 
         if (password.length < 6) {
             return res.status(400).json({ err_msg: "Password must be at least 6 characters long" })
@@ -503,8 +503,8 @@ app.post("/verifyOtp", async (req, res) => {
         return res.status(400).json({ err_msg: "Otp is Invalid!" })
     }
 
-    user.otp=""
-    user.isVerified=true
+    user.otp = ""
+    user.isVerified = true
     await user.save()
 
     return res.status(200).json({ message: "Otp Verified Successfully! You Can Login Now!" })
@@ -519,8 +519,8 @@ app.post("/resetPassword", async (req, res) => {
             return res.status(404).json({ err_msg: "User Not Found" });
         }
 
-        if (password.length<6){
-            return res.status(400).json({err_msg:"Password must be Atleast 6 Characters Long"})
+        if (password.length < 6) {
+            return res.status(400).json({ err_msg: "Password must be Atleast 6 Characters Long" })
         }
         const isOldPasswordMatched = await bcrypt.compare(password, user.password)
         if (isOldPasswordMatched) {
