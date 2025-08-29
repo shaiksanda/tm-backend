@@ -336,20 +336,20 @@ app.post("/tasks", authenticateToken, async (req, res) => {
 
 app.put('/tasks/:taskId', authenticateToken, async (req, res) => {
     const { taskId } = req.params;
-    const { task, tag, priority, status, selectedDate } = req.body;
+    const { todo, tag, priority, status, selectedDate } = req.body;
     const date = new Date(selectedDate);
     date.setHours(0, 0, 0, 0);
     try {
         const updatedTask = await Task.findByIdAndUpdate(
             taskId,
-            { task, tag, priority, status, selectedDate: date },
+            { todo, tag, priority, status, selectedDate: date },
             { new: true }
         );
 
         if (!updatedTask) {
             return res.status(404).send({ err_msg: 'Task not found' });
         }
-        res.status(200).json({ message: 'Task updated successfully', updatedTodo });
+        res.status(200).json({ message: 'Task updated successfully' });
     } catch (error) {
         res.status(500).json({ err_msg: error.message });
     }
