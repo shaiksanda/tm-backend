@@ -504,6 +504,7 @@ app.post("/verifyOtp", async (req, res) => {
     }
 
     user.otp=""
+    user.isVerified=true
     await user.save()
 
     return res.status(200).json({ message: "Otp Verified Successfully!" })
