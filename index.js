@@ -406,11 +406,7 @@ app.post("/register", async (req, res) => {
             email
         });
         await newUser.save();
-
-        const payload = { username: newUser.username, email: newUser.email, role: newUser.role, isVerified: newUser.isVerified, userId: newUser._id }
-        const token = jwt.sign(payload, process.env.EMAIL_TOKEN, { expiresIn: "5m" })
-        sendVerificationEmail(email, token)
-        res.status(200).json({ message: "User registered successfully! Please check your email to verify your account.", });
+        res.status(200).json({ message: "User registered successfully!" });
     } catch (error) {
         res.status(500).json({ err_msg: error.message });
     }
@@ -507,6 +503,9 @@ app.post("/verifyOtp", async (req, res) => {
         return res.status(400).json({ err_msg: "Otp is Invalid!" })
     }
 
+    user.otp=""
+    await user.save()
+
     return res.status(200).json({ message: "Otp Verified Successfully!" })
 })
 
@@ -517,6 +516,10 @@ app.post("/resetPassword", async (req, res) => {
 
         if (!user) {
             return res.status(404).json({ err_msg: "User Not Found" });
+        }
+
+        if (password.length<6){
+            return res.status(400).json({err_msg:"Password must be at least 6 characters long"})
         }
         const isOldPasswordMatched = await bcrypt.compare(password, user.password)
         if (isOldPasswordMatched) {
@@ -529,7 +532,7 @@ app.post("/resetPassword", async (req, res) => {
         user.otp = ""
         await user.save();
 
-        res.status(200).json({ msg: "Password reset successful!" });
+        res.status(200).json({ msg: "Password Changed successful!" });
     } catch (error) {
         res.status(500).json({ err_msg: error.message });
     }
