@@ -340,7 +340,7 @@ app.put('/tasks/:taskId', authenticateToken, async (req, res) => {
     const date = new Date(selectedDate);
     date.setHours(0, 0, 0, 0);
     try {
-        const updatedTask = await Task.findByIdAndUpdate(
+        const updatedTask = await Todo.findByIdAndUpdate(
             taskId,
             { todo, tag, priority, status, selectedDate: date },
             { new: true }
