@@ -35,5 +35,5 @@ const taskSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-module.exports = mongoose.model("Todo", taskSchema);
+const taskModel=mongoose.model("Todo", taskSchema);
+module.exports =taskModel
