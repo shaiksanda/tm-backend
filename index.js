@@ -19,8 +19,8 @@ connectToMongoDB();
 
 app.use("/users",userRoutes)
 app.use("/tasks",taskRoutes)
-app.use("goals",goalsRoutes)
-app.use("feedback",feedbackRoutes)
+app.use("/goals",goalsRoutes)
+app.use("/feedback",feedbackRoutes)
 
 app.get("/", (req, res) => {
     res.send("Hello, world! ,I successfully deployed my first backend application");
