@@ -128,7 +128,7 @@ module.exports.updateTask = async (req, res) => {
         }
 
 
-        const createdDate = new Date(existingTask.createdAt);
+        const createdDate = new Date(existingTask.selectedDate);
         const today = new Date();
 
         createdDate.setHours(0, 0, 0, 0);
