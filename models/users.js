@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String, enum: ["admin", "user"],
     default: "user"
-  }
+  },
+   bio: { type: String, trim: true, default: "" }
 
 }, { timestamps: true });
 
@@ -25,13 +26,13 @@ userSchema.statics.comparePassword = async (password, hashedPassword) => {
   return bcrypt.compare(password, hashedPassword);
 };
 
-userSchema.statics.hashOtp = async (otp) => {
-  return bcrypt.hash(otp, 10);
-};
-// Compare password
-userSchema.statics.compareOtp = async (otp, hashedOtp) => {
-  return bcrypt.compare(otp, hashedOtp);
-};
+// userSchema.statics.hashOtp = async (otp) => {
+//   return bcrypt.hash(otp, 10);
+// };
+// // Compare password
+// userSchema.statics.compareOtp = async (otp, hashedOtp) => {
+//   return bcrypt.compare(otp, hashedOtp);
+// };
 // Generate JWT
 userSchema.statics.generateAuthToken = (userId) => {
     return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "5d" });
