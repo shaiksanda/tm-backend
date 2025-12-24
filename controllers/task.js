@@ -70,7 +70,7 @@ module.exports.getTasks = async (req, res) => {
     }
 
     try {
-        const tasks = await taskModel.find(filter, { todo: 1, status: 1 });
+        const tasks = await taskModel.find(filter, { todo: 1, status: 1 }).sort({ selectedDate: -1 });;
 
         res.status(200).json(tasks);
     } catch (error) {
