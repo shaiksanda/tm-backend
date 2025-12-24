@@ -42,7 +42,7 @@ module.exports.getTodayTasks = async (req, res) => {
         if (priority) filter.priority = priority
         if (status) filter.status = status
 
-        const tasks = await taskModel.find(filter).sort({ startTime: 1, endTime: 1 });
+        const tasks = await taskModel.find(filter,{todo:1,status:1}).sort({ startTime: 1, endTime: 1 });
         return res.status(200).json(tasks);
     }
     catch (error) {
