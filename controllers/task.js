@@ -52,10 +52,10 @@ module.exports.getTodayTasks = async (req, res) => {
 
 module.exports.getTasks = async (req, res) => {
     const cleanQuery = sanitize(req.query)
-    const { tag, status, priority, selectedDate } = cleanQuery;
+    const { tag, status, priority, selectedDate,search } = cleanQuery;
     const userId = req.user._id;
     const filter = { userId };
-
+    if (search) filter.todo = { $regex: search, $options: "i" }
     if (tag) filter.tag = tag;
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
