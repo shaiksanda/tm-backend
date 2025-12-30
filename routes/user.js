@@ -1,7 +1,8 @@
 const express = require("express")
 const router = express.Router()
 const { body } = require("express-validator")
-const {registerUser,loginUser,logoutUser,getAllUsers,getDashboard,getStreakData,sendOtp,verifyOtp,resetPassword}=require("../controllers/user")
+const {registerUser,loginUser,logoutUser,getAllUsers,getStreakData}=require("../controllers/user")
+const {getDashboard} =require("../controllers/getDashboard")
 const {authenticateUser}=require("../middlewares/auth")
 
 
@@ -17,12 +18,6 @@ router.post("/login",[
 ],loginUser)
 
 router.get("/all-users",authenticateUser,getAllUsers)
-
-router.post("/sendOtp",sendOtp)
-router.post("/verifyOtp",verifyOtp)
-router.post("/resetPassword",resetPassword)
-
-
 router.get("/logout",authenticateUser,logoutUser)
 router.get("/dashboard",authenticateUser,getDashboard)
 router.get("/streak",authenticateUser,getStreakData)

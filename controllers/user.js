@@ -100,114 +100,6 @@ module.exports.logoutUser = async (req, res, next) => {
     }
 }
 
-module.exports.getDashboard = async (req, res) => {
-    try {
-        const userId = req.user._id;
-        const { days } = req.query
-
-        const endDate = new Date();
-        endDate.setUTCHours(0, 0, 0, 0);
-
-        const startDate = new Date(endDate);
-        startDate.setUTCDate(startDate.getUTCDate() - days);
-
-        const tasks = await taskModel.find({ userId, selectedDate: { $gte: startDate, $lte: endDate } })
-        const getGraph1 = () => {
-            let pendingTasks = completedTasks = 0
-            tasks.forEach(each => {
-                if (each.status === "pending") pendingTasks++
-                else completedTasks++
-            })
-            return { totalTasks: tasks.length, pendingTasks, completedTasks }
-        }
-
-        const getGraph2 = () => {
-            let high = low = medium = 0
-            tasks.forEach(each => {
-                if (each.priority === "low") low++
-                else if (each.priority === "medium") medium++
-                else high++
-            })
-            return { low, medium, high }
-        }
-
-        const getGraph3 = async () => {
-            const aggregatedTasks = await taskModel.aggregate([
-                { $match: { userId: new mongoose.Types.ObjectId(userId), selectedDate: { $gte: startDate, $lte: endDate } } },
-                { $group: { _id: "$selectedDate", completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } } } },
-                { $project: { _id: 0, date: "$_id", completed: 1 } }
-            ])
-            const dateMap = new Map()
-
-            aggregatedTasks.forEach(each => {
-                const dateStr = each.date.toISOString().slice(0, 10)
-                dateMap.set(dateStr, each.completed);
-            })
-
-            let lineChartData = []
-
-            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-
-                const dateClone = new Date(d);
-                const dateStr = dateClone.toISOString().slice(0, 10)
-                lineChartData.push({ date: dateStr, count: dateMap.get(dateStr) || 0 })
-            }
-
-
-            return { completion_breakdown: lineChartData }
-        }
-
-        const getGraph4 = async () => {
-            const aggregatedTasks = await taskModel.aggregate([
-                { $match: { userId: new mongoose.Types.ObjectId(userId), selectedDate: { $gte: startDate, $lte: endDate } } },
-                { $group: { _id: "$selectedDate", total: { $sum: 1 }, completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } } } },
-                { $project: { _id: 0, date: "$_id", total: 1, completed: 1 } }
-            ])
-            const dateMap = new Map()
-            aggregatedTasks.forEach(each => {
-                const dateStr = each.date.toISOString().slice(0, 10)
-                dateMap.set(dateStr, { total: each.total, completed: each.completed })
-            })
-
-            let stackedBarChart = []
-            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-                const dateClone = new Date(d)
-                const dateStr = dateClone.toISOString().slice(0, 10)
-                stackedBarChart.push({ date: dateStr, total: dateMap.get(dateStr)?.total || 0, completed: dateMap.get(dateStr)?.completed || 0 })
-            }
-            return { created_vs_completed_breakdown: stackedBarChart }
-        }
-
-        const getGraph5 = async () => {
-            const aggregatedTasks = await taskModel.aggregate([
-                { $match: { userId: new mongoose.Types.ObjectId(userId), selectedDate: { $gte: startDate, $lte: endDate } } },
-                { $group: { _id: "$tag", count: { $sum: 1 } } },
-                { $project: { _id: 0, tag: "$_id", count: 1 } },
-                { $sort: { count: -1 } }
-            ])
-            return { tags: aggregatedTasks }
-        }
-
-        const status_breakdown = getGraph1()
-        const priority_breakdown = getGraph2()
-        const completion_trend = await getGraph3()
-        const created_vs_completed_trend = await getGraph4()
-        const tag_breakdown = await getGraph5()
-
-        res.status(200).json({
-            status_breakdown,
-            priority_breakdown,
-            completion_trend,
-            created_vs_completed_trend,
-            tag_breakdown
-        })
-
-    } catch (err) {
-
-        res.status(500).json({ message: err.message })
-    }
-}
-
 module.exports.getStreakData = async (req, res) => {
     try {
         const userId  = req.user._id
@@ -302,68 +194,68 @@ module.exports.getStreakData = async (req, res) => {
     }
 }
 
-module.exports.sendOtp = async (req, res) => {
-    try {
-        const { email } = req.body
-        await generateAndSendOtp(email)
-        return res.status(200).json({ message: "OTP has been sent to your email! Please check your inbox." })
-    }
-    catch (err) {
-        return res.status(500).json({ message: err.message })
-    }
-}
+// module.exports.sendOtp = async (req, res) => {
+//     try {
+//         const { email } = req.body
+//         await generateAndSendOtp(email)
+//         return res.status(200).json({ message: "OTP has been sent to your email! Please check your inbox." })
+//     }
+//     catch (err) {
+//         return res.status(500).json({ message: err.message })
+//     }
+// }
 
-module.exports.verifyOtp = async (req, res) => {
-    try {
-        const { email, otp } = req.body;
-        const user = await userModel.findOne({ email })
+// module.exports.verifyOtp = async (req, res) => {
+//     try {
+//         const { email, otp } = req.body;
+//         const user = await userModel.findOne({ email })
 
-        if (!user) {
-            return res.status(404).json({ message: "User Not Found" })
-        }
-        let isOtpMatched = await userModel.compareOtp(otp, user.otp)
+//         if (!user) {
+//             return res.status(404).json({ message: "User Not Found" })
+//         }
+//         let isOtpMatched = await userModel.compareOtp(otp, user.otp)
 
-        if (!isOtpMatched) {
-            return res.status(400).json({ message: "Otp is Invalid!" })
-        }
+//         if (!isOtpMatched) {
+//             return res.status(400).json({ message: "Otp is Invalid!" })
+//         }
 
-        user.otp = ""
-        user.isVerified = true
-        await user.save()
+//         user.otp = ""
+//         user.isVerified = true
+//         await user.save()
 
-        res.status(200).json({ message: "Otp Verified Successfully! You Can Login Now!" })
+//         res.status(200).json({ message: "Otp Verified Successfully! You Can Login Now!" })
 
-    }
-    catch (err) {
-        res.status(500).json({ message: err.message })
-    }
-}
+//     }
+//     catch (err) {
+//         res.status(500).json({ message: err.message })
+//     }
+// }
 
-module.exports.resetPassword = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await userModel.findOne({ email }).select("+password");;
+// module.exports.resetPassword = async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+//         const user = await userModel.findOne({ email }).select("+password");;
     
-        if (!user) {
-            return res.status(404).json({ message: "User Not Found" });
-        }
+//         if (!user) {
+//             return res.status(404).json({ message: "User Not Found" });
+//         }
 
-        if (password.length < 6) {
-            return res.status(400).json({ message: "Password must be Atleast 6 Characters Long" })
-        }
-        const isOldPasswordMatched = await userModel.comparePassword(password,user.password)
-        if (isOldPasswordMatched) {
-            return res.status(400).json({
-                message: "You cannot reuse your current password. Please choose a different one."
-            })
-        }
-        const encryptedPassword = await userModel.hashPassword(password);
-        user.password = encryptedPassword;
-        user.otp = ""
-        await user.save();
+//         if (password.length < 6) {
+//             return res.status(400).json({ message: "Password must be Atleast 6 Characters Long" })
+//         }
+//         const isOldPasswordMatched = await userModel.comparePassword(password,user.password)
+//         if (isOldPasswordMatched) {
+//             return res.status(400).json({
+//                 message: "You cannot reuse your current password. Please choose a different one."
+//             })
+//         }
+//         const encryptedPassword = await userModel.hashPassword(password);
+//         user.password = encryptedPassword;
+//         user.otp = ""
+//         await user.save();
 
-        res.status(200).json({ message: "Password Changed successful!" });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+//         res.status(200).json({ message: "Password Changed successful!" });
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// }
