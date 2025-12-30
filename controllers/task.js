@@ -109,11 +109,11 @@ module.exports.updateTask = async (req, res) => {
 
         const userId = req.user._id;
         const cleanBody = sanitize(req.body)
-        const { task, status, tag, priority,startTime,endTime } = cleanBody;
+        const { todo, status, tag, priority,startTime,endTime } = cleanBody;
 
 
         const updates = {};
-        if (task !== undefined) updates.task = task;
+        if (todo !== undefined) updates.todo = todo;
         if (status !== undefined) updates.status = status;
         if (tag !== undefined) updates.tag = tag;
         if (priority !== undefined) updates.priority = priority;
