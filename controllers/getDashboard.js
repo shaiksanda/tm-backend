@@ -24,7 +24,7 @@ module.exports.getDashboard = async (req, res) => {
                         _id: null,
                         totalTasks: { $sum: 1 },
                         // Counting pending as missed for now; update after cron job
-                        missed: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } },
+                        missed: { $sum: { $cond: [{ $eq: ["$status", "missed"] }, 1, 0] } },
                         completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
                         low: { $sum: { $cond: [{ $eq: ["$priority", "low"] }, 1, 0] } },
                         medium: { $sum: { $cond: [{ $eq: ["$priority", "medium"] }, 1, 0] } },
@@ -39,7 +39,7 @@ module.exports.getDashboard = async (req, res) => {
                     $group: {
                         _id: "$selectedDate",
                         completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
-                        missed: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } }
+                        missed: { $sum: { $cond: [{ $eq: ["$status", "missed"] }, 1, 0] } }
                     }
                 },
                 { $project: { _id: 0, date: "$_id", completed: 1, missed: 1 } }
