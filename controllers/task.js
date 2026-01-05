@@ -2,6 +2,31 @@ const taskModel = require("../models/tasks")
 const sanitize = require("../utils/sanitize")
 const mongoose = require("mongoose");
 
+// module.exports.updateAllTasks = async (req, res) => {
+//     const startOfToday = new Date();
+//     startOfToday.setUTCHours(0, 0, 0, 0);
+
+//     const endOfToday = new Date();
+//     endOfToday.setUTCHours(23, 59, 59, 999);
+
+//     const result = await taskModel.updateMany(
+//         {
+//             status: "pending",
+//             selectedDate: {
+//                 $gte: startOfToday,
+//                 $lte: endOfToday,
+//             },
+//         },
+//         {
+//             $set: { status: "missed" },
+//         }
+//     );
+
+
+//     console.log("Modified count:", result.modifiedCount);
+//     res.status(200).json(result)
+// }
+
 module.exports.postTask = async (req, res) => {
     try {
         const body = sanitize(req.body)
@@ -42,7 +67,7 @@ module.exports.getTodayTasks = async (req, res) => {
         if (priority) filter.priority = priority
         if (status) filter.status = status
 
-        const tasks = await taskModel.find(filter,{todo:1,status:1,selectedDate:1,tag:1,startTime:1,endTime:1}).sort({ startTime: 1, endTime: 1 });
+        const tasks = await taskModel.find(filter, { todo: 1, status: 1, selectedDate: 1, tag: 1, startTime: 1, endTime: 1 }).sort({ startTime: 1, endTime: 1 });
         return res.status(200).json(tasks);
     }
     catch (error) {
@@ -52,7 +77,7 @@ module.exports.getTodayTasks = async (req, res) => {
 
 module.exports.getTasks = async (req, res) => {
     const cleanQuery = sanitize(req.query)
-    const { tag, status, priority, selectedDate,search } = cleanQuery;
+    const { tag, status, priority, selectedDate, search } = cleanQuery;
     const userId = req.user._id;
     const filter = { userId };
     if (search) filter.todo = { $regex: search, $options: "i" }
@@ -109,7 +134,7 @@ module.exports.updateTask = async (req, res) => {
 
         const userId = req.user._id;
         const cleanBody = sanitize(req.body)
-        const { todo, status, tag, priority,startTime,endTime } = cleanBody;
+        const { todo, status, tag, priority, startTime, endTime } = cleanBody;
 
 
         const updates = {};
@@ -117,8 +142,8 @@ module.exports.updateTask = async (req, res) => {
         if (status !== undefined) updates.status = status;
         if (tag !== undefined) updates.tag = tag;
         if (priority !== undefined) updates.priority = priority;
-        if (startTime!==undefined) updates.startTime=startTime;
-        if (endTime!==undefined) updates.endTime=endTime
+        if (startTime !== undefined) updates.startTime = startTime;
+        if (endTime !== undefined) updates.endTime = endTime
 
         if (Object.keys(updates).length === 0) {
             return res.status(400).json({ message: "No valid fields to update" });

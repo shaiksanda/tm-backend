@@ -17,8 +17,6 @@ app.use(express.urlencoded({ extended: true }));
 const connectToMongoDB=require("./db/db")
 connectToMongoDB();
 
-require("./cron/updateMissedTasks")
-
 app.use("/users",userRoutes)
 app.use("/tasks",taskRoutes)
 app.use("/goals",goalsRoutes)

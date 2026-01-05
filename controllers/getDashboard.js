@@ -76,6 +76,7 @@ module.exports.getDashboard = async (req, res) => {
         }
 
         res.status(200).json({
+            totalTasks,
             statusBreakdown,
             priorityBreakdown,
             completionBreakdown,

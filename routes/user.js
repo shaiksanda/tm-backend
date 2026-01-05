@@ -4,7 +4,8 @@ const { body } = require("express-validator")
 const {registerUser,loginUser,logoutUser,getAllUsers,getStreakData}=require("../controllers/user")
 const {getDashboard} =require("../controllers/getDashboard")
 const {authenticateUser}=require("../middlewares/auth")
-
+const {adminDashboard}=require("../controllers/adminDashboard")
+const {userDetails}=require("../controllers/userDetails")
 
 router.post("/register", [
     body('email').isEmail().withMessage("Invalid Email"),
@@ -16,6 +17,9 @@ router.post("/login",[
     body("username").isLength({min:3}).withMessage("Username must be atleast 3 characters Long"),
     body("password").isLength({min:6}).withMessage("Password Must be 6 Characters Long.")
 ],loginUser)
+
+router.get("/admin-dashboard",authenticateUser,adminDashboard)
+router.get("/user-detail/:userId",authenticateUser,userDetails)
 
 router.get("/all-users",authenticateUser,getAllUsers)
 router.get("/logout",authenticateUser,logoutUser)

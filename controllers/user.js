@@ -57,7 +57,8 @@ module.exports.loginUser = async (req, res, next) => {
             return res.status(401).json({ message: "Invalid Username Or Wrong Password" })
         }
         const token = await userModel.generateAuthToken(existingUser._id)
-        return res.status(200).json({ token, existingUser })
+        const userData={userId:existingUser._id,username:existingUser.username,role:existingUser.role,bio:existingUser.bio,avatar:existingUser.avatar,email:existingUser.email}
+        return res.status(200).json({ token, userData })
     }
     catch (error) {
         res.status(500).json({ message: error.message })
