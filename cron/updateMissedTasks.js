@@ -3,7 +3,7 @@ const taskModel = require("../models/tasks")
 
 cron.schedule("55 23 * * *", async () => {
 
-    console.log("✅ Cron triggered at 23:59");
+    console.log("✅ Cron triggered at 23:55");
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
