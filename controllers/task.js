@@ -1,6 +1,7 @@
 const taskModel = require("../models/tasks")
 const sanitize = require("../utils/sanitize")
 const mongoose = require("mongoose");
+const getTodayDate = require("../utils/getTodayDate")
 
 // module.exports.updateAllTasks = async (req, res) => {
 //     const startOfToday = new Date();
@@ -33,9 +34,8 @@ module.exports.postTask = async (req, res) => {
         const { todo, tag, priority, selectedDate, startTime, endTime } = body;
         const userId = req.user._id
 
-        const date = new Date(selectedDate);
-        date.setHours(0, 0, 0, 0)
-        const newTask = { todo, tag, priority, userId, selectedDate: date }
+
+        const newTask = { todo, tag, priority, userId, selectedDate }
         if (startTime) newTask.startTime = startTime;
         if (endTime) newTask.endTime = endTime;
         await taskModel.create(newTask);
@@ -49,15 +49,11 @@ module.exports.getTodayTasks = async (req, res) => {
     try {
         const cleanQuery = sanitize(req.query)
         const userId = req.user._id
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
+        const today = getTodayDate()
 
         const filter = {
             userId,
-            selectedDate: { $gte: today, $lt: tomorrow }
+            selectedDate: today
         };
 
         const { tag, priority, search, status } = cleanQuery
@@ -86,12 +82,7 @@ module.exports.getTasks = async (req, res) => {
     if (priority) filter.priority = priority;
 
     if (selectedDate) {
-
-        const date = new Date(selectedDate);
-        date.setHours(0, 0, 0, 0);
-        const nextDate = new Date(date);
-        nextDate.setDate(date.getDate() + 1); // Set nextDate to the start of the next day
-        filter.selectedDate = { $gte: date, $lt: nextDate };
+        filter.selectedDate = selectedDate
     }
 
     try {
@@ -154,20 +145,14 @@ module.exports.updateTask = async (req, res) => {
             return res.status(404).json({ message: "Task Not Found" });
         }
 
+        const today = getTodayDate();
 
-        const createdDate = new Date(existingTask.selectedDate);
-        const today = new Date();
-
-        createdDate.setHours(0, 0, 0, 0);
-        today.setHours(0, 0, 0, 0);
-
-        if (createdDate.getTime() !== today.getTime()) {
+        if (existingTask.selectedDate !== today) {
             return res.status(403).json({
                 message: "You can update task only on the created date"
             });
         }
-
-
+        
         const updatedTask = await taskModel.findOneAndUpdate(
             { _id: taskId, userId },
             { $set: updates },

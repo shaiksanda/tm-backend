@@ -24,7 +24,7 @@ const todoSchema = new mongoose.Schema(
 
     
     selectedDate: {
-      type: Date,
+      type: String,
       required: true,
     },
 
