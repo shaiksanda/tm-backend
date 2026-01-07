@@ -51,6 +51,7 @@ module.exports.getTodayTasks = async (req, res) => {
         const cleanQuery = sanitize(req.query)
         const userId = req.user._id
         const today = getTodayDate()
+        console.log(today)
        
         const filter = {
             userId,
@@ -65,7 +66,7 @@ module.exports.getTodayTasks = async (req, res) => {
         if (status) filter.status = status
 
         const tasks = await taskModel.find(filter, { todo: 1, status: 1, selectedDate: 1, tag: 1, startTime: 1, endTime: 1 }).sort({ startTime: 1, endTime: 1 });
-        return res.status(200).json(tasks);
+        return res.status(200).json({tasks,today});
     }
     catch (error) {
         return res.status(500).json({ message: error.message })
