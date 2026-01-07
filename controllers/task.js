@@ -4,30 +4,7 @@ const mongoose = require("mongoose");
 const getTodayDate = require("../utils/getTodayDate");
 const { selectFields } = require("express-validator/lib/field-selection");
 
-// module.exports.updateAllTasks = async (req, res) => {
-//     const startOfToday = new Date();
-//     startOfToday.setUTCHours(0, 0, 0, 0);
 
-//     const endOfToday = new Date();
-//     endOfToday.setUTCHours(23, 59, 59, 999);
-
-//     const result = await taskModel.updateMany(
-//         {
-//             status: "pending",
-//             selectedDate: {
-//                 $gte: startOfToday,
-//                 $lte: endOfToday,
-//             },
-//         },
-//         {
-//             $set: { status: "missed" },
-//         }
-//     );
-
-
-//     console.log("Modified count:", result.modifiedCount);
-//     res.status(200).json(result)
-// }
 
 module.exports.postTask = async (req, res) => {
     try {
@@ -51,7 +28,7 @@ module.exports.getTodayTasks = async (req, res) => {
         const cleanQuery = sanitize(req.query)
         const userId = req.user._id
         const today = getTodayDate()
-        console.log(today)
+        
        
         const filter = {
             userId,
