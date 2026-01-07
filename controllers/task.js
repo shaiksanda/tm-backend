@@ -1,7 +1,8 @@
 const taskModel = require("../models/tasks")
 const sanitize = require("../utils/sanitize")
 const mongoose = require("mongoose");
-const getTodayDate = require("../utils/getTodayDate")
+const getTodayDate = require("../utils/getTodayDate");
+const { selectFields } = require("express-validator/lib/field-selection");
 
 // module.exports.updateAllTasks = async (req, res) => {
 //     const startOfToday = new Date();
@@ -50,12 +51,12 @@ module.exports.getTodayTasks = async (req, res) => {
         const cleanQuery = sanitize(req.query)
         const userId = req.user._id
         const today = getTodayDate()
-
+       
         const filter = {
             userId,
             selectedDate: today
         };
-
+        
         const { tag, priority, search, status } = cleanQuery
 
         if (search) filter.todo = { $regex: search, $options: "i" }
