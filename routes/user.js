@@ -1,12 +1,23 @@
 const express = require("express")
 const router = express.Router()
 const { body } = require("express-validator")
-const {registerUser,loginUser,logoutUser,getAllUsers,getStreakData}=require("../controllers/user")
+const {registerUser,loginUser,logoutUser,getAllUsers,getStreakData, getProfile}=require("../controllers/user")
 const {getDashboard} =require("../controllers/getDashboard")
 const {authenticateUser}=require("../middlewares/auth")
 const {adminDashboard,deleteUserProfile}=require("../controllers/adminDashboard")
 const {userDetails}=require("../controllers/userDetails")
+const upload = require("../config/multer");
+const {
+  uploadProfileImage,
+} = require("../controllers/user");
 
+
+router.post(
+  "/upload-profile",
+  authenticateUser,
+  upload.single("avatar"),
+  uploadProfileImage
+);
 
 router.post("/register", [
     body('email').isEmail().withMessage("Invalid Email"),
@@ -26,6 +37,8 @@ router.delete("/delete-user-profile/:userId",authenticateUser,deleteUserProfile)
 router.get("/all-users",authenticateUser,getAllUsers)
 router.get("/logout",authenticateUser,logoutUser)
 router.get("/dashboard",authenticateUser,getDashboard)
+
+router.get("/profile",authenticateUser,getProfile)
 router.get("/streak",authenticateUser,getStreakData)
 
 module.exports=router

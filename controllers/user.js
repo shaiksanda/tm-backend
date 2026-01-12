@@ -3,9 +3,59 @@ const taskModel = require("../models/tasks")
 const mongoose = require("mongoose")
 const { validationResult } = require("express-validator")
 
-const { generateAndSendOtp } = require("../utils/generateotp")
-
 const BlacklistToken = require("../models/blacklist")
+
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
+
+
+module.exports.uploadProfileImage = async (req, res) => {
+    try {
+        const userId = req.user._id
+        
+        const file = req.file;
+        
+
+        if (!file) {
+            return res.status(400).json({
+                message: "Profile image is required",
+            });
+        }
+
+        const uploadFromBuffer = () => {
+            return new Promise((resolve, reject) => {
+                const cloudStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: "profiles",
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+
+                streamifier.createReadStream(file.buffer).pipe(cloudStream);
+            });
+        };
+
+        const result = await uploadFromBuffer();
+
+        const profileImageUrl = result.secure_url;
+        
+        
+        await userModel.findByIdAndUpdate(userId, {  $set:{avatar:profileImageUrl}},{new: true});
+
+        res.status(200).json({
+            message: "Profile uploaded successfully",
+            profileImageUrl,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Upload failed",
+            error: error.message,
+        });
+    }
+};
 
 module.exports.registerUser = async (req, res, next) => {
     try {
@@ -57,7 +107,7 @@ module.exports.loginUser = async (req, res, next) => {
             return res.status(401).json({ message: "Invalid Username Or Wrong Password" })
         }
         const token = await userModel.generateAuthToken(existingUser._id)
-        const userData={userId:existingUser._id,username:existingUser.username,role:existingUser.role,bio:existingUser.bio,avatar:existingUser.avatar,email:existingUser.email}
+        const userData = { userId: existingUser._id, username: existingUser.username, role: existingUser.role, bio: existingUser.bio, avatar: existingUser.avatar, email: existingUser.email }
         return res.status(200).json({ token, userData })
     }
     catch (error) {
@@ -66,7 +116,7 @@ module.exports.loginUser = async (req, res, next) => {
 }
 
 module.exports.getAllUsers = async (req, res, next) => {
-    const userId  = req.user._id
+    const userId = req.user._id
 
     try {
         const user = await userModel.findById(userId); // Query user model by userId
@@ -103,7 +153,7 @@ module.exports.logoutUser = async (req, res, next) => {
 
 module.exports.getStreakData = async (req, res) => {
     try {
-        const userId  = req.user._id
+        const userId = req.user._id
         const { days } = req.query
 
         let today = new Date()
@@ -195,68 +245,27 @@ module.exports.getStreakData = async (req, res) => {
     }
 }
 
-// module.exports.sendOtp = async (req, res) => {
-//     try {
-//         const { email } = req.body
-//         await generateAndSendOtp(email)
-//         return res.status(200).json({ message: "OTP has been sent to your email! Please check your inbox." })
-//     }
-//     catch (err) {
-//         return res.status(500).json({ message: err.message })
-//     }
-// }
-
-// module.exports.verifyOtp = async (req, res) => {
-//     try {
-//         const { email, otp } = req.body;
-//         const user = await userModel.findOne({ email })
-
-//         if (!user) {
-//             return res.status(404).json({ message: "User Not Found" })
-//         }
-//         let isOtpMatched = await userModel.compareOtp(otp, user.otp)
-
-//         if (!isOtpMatched) {
-//             return res.status(400).json({ message: "Otp is Invalid!" })
-//         }
-
-//         user.otp = ""
-//         user.isVerified = true
-//         await user.save()
-
-//         res.status(200).json({ message: "Otp Verified Successfully! You Can Login Now!" })
-
-//     }
-//     catch (err) {
-//         res.status(500).json({ message: err.message })
-//     }
-// }
-
-// module.exports.resetPassword = async (req, res) => {
-//     try {
-//         const { email, password } = req.body;
-//         const user = await userModel.findOne({ email }).select("+password");;
-    
-//         if (!user) {
-//             return res.status(404).json({ message: "User Not Found" });
-//         }
-
-//         if (password.length < 6) {
-//             return res.status(400).json({ message: "Password must be Atleast 6 Characters Long" })
-//         }
-//         const isOldPasswordMatched = await userModel.comparePassword(password,user.password)
-//         if (isOldPasswordMatched) {
-//             return res.status(400).json({
-//                 message: "You cannot reuse your current password. Please choose a different one."
-//             })
-//         }
-//         const encryptedPassword = await userModel.hashPassword(password);
-//         user.password = encryptedPassword;
-//         user.otp = ""
-//         await user.save();
-
-//         res.status(200).json({ message: "Password Changed successful!" });
-//     } catch (error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// }
+module.exports.getProfile = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const user = await userModel.findById(
+            userId,
+            {
+                username: 1,
+                email: 1,
+                bio: 1,
+                avatar: 1,
+                role: 1,
+                createdAt: 1,
+                updatedAt: 1
+            }
+        );
+        if (!user) {
+            return res.status(404).json({ message: "User Not Found!" })
+        }
+        return res.status(200).json(user)
+    }
+    catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+}
