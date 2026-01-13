@@ -12,7 +12,7 @@ const {
 } = require("../controllers/user");
 
 
-router.post(
+router.put(
   "/upload-profile",
   authenticateUser,
   upload.single("avatar"),
