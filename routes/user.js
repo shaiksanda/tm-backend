@@ -1,7 +1,8 @@
 const express = require("express")
 const router = express.Router()
 const { body } = require("express-validator")
-const {registerUser,loginUser,logoutUser,getAllUsers,getStreakData, getProfile}=require("../controllers/user")
+const {registerUser,loginUser,logoutUser,getAllUsers, getProfile}=require("../controllers/user")
+const {getStreakData} =require("../controllers/streakData")
 const {getDashboard} =require("../controllers/getDashboard")
 const {authenticateUser}=require("../middlewares/auth")
 const {adminDashboard,deleteUserProfile}=require("../controllers/adminDashboard")
@@ -39,6 +40,7 @@ router.get("/logout",authenticateUser,logoutUser)
 router.get("/dashboard",authenticateUser,getDashboard)
 
 router.get("/profile",authenticateUser,getProfile)
+
 router.get("/streak",authenticateUser,getStreakData)
 
 module.exports=router
